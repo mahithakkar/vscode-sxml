@@ -1,7 +1,10 @@
+import { SaxesParser } from "saxes"; //saxes is the XML parser
+import type { SaxesAttributeNS } from "saxes"; //SaxesAttributeNS is a type that describes what attribute looks like
 import * as path from "path";
 import * as url from "url";
 import { window } from "vscode";
 import { NodePath, XPathStep } from "./types";
+
 
 export function normalizeSchemaUrl(schemaURL: string): string {
   try {
@@ -98,4 +101,36 @@ export function makeStatusMsg(msg: string, icon: string, sch = false, tail?: str
   return sch
     ? `$(gear~spin) ${fullMsg}; checking Schematron.`
     : `$(${icon}) ${fullMsg}.`
+}
+
+//this function takes the full document text as a string and returns an arrays with all the 
+//IDs that it found. 
+export function collectXmlIds(documentText: string): string[] {
+  const ids: string[] = []; //initially empty, this will have all xml:id values 
+  const parser = new SaxesParser({ xmlns: true, position: false });
+  //new XML parser which understands namespaces for xml:id
+
+  parser.on("opentag", (node) => { //every time the parser is on this opening tag then: 
+    const names = Object.keys(node.attributes);
+    for (const name of names) { //loops through every attribute on that tag
+      const attr = node.attributes[name] as SaxesAttributeNS;
+      //if statement which checks if this attribute is specifically xml:id
+      if (
+        attr.local === "id" &&
+        attr.uri === "http://www.w3.org/XML/1998/namespace"
+      ) {
+        if (attr.value && !ids.includes(attr.value)) {
+          ids.push(attr.value); //adds it to array 
+        }
+      }
+    }
+  });
+
+  try {
+    parser.write(documentText).close();
+  } catch {
+    //Ignore parse errors so document may be incomplete while editing
+  }
+
+  return ids; //return collected ids 
 }

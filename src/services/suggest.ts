@@ -1,5 +1,5 @@
 import { CompletionRequest } from "../constants";
-import { truncate } from "../utils";
+import { truncate , collectXmlIds} from "../utils";
 import { CompletionItem } from "vscode";
 
 import type { XMLDocumentManager } from "../core/XMLDocumentManager";
@@ -35,7 +35,7 @@ export class SalveCompletionProvider implements CompletionItemProvider {
           // abort
           return Promise.resolve([]);
         }
-      } else if (context.triggerCharacter === `"`) {
+      } else if (context.triggerCharacter === '"' || context.triggerCharacter === '#') {
         if (lineUntil.match(/="$/)) {
           request = CompletionRequest.VAL;
         } else {
@@ -61,8 +61,22 @@ export class SalveCompletionProvider implements CompletionItemProvider {
     const grammar = documentManager.getCachedGrammar();
     const {documentText, parser, nameResolver} = documentManager;
 
-    if (!grammar || !nameResolver || !parser) return [];
-
+    //if (!grammar || !nameResolver || !parser) return [];
+    if (!grammar || !nameResolver || !parser) {
+  // even without a schema, we can still suggest xml:id pointers
+      if (request === CompletionRequest.VAL) {
+        const items: CompletionItem[] = [];
+        const xmlIds = collectXmlIds(documentText);
+        for (const id of xmlIds) {
+          const ci = new CompletionItem(`#${id}`, 24);
+          ci.detail = "xml:id reference";
+          ci.documentation = `Points to the element with xml:id="${id}"`;
+          items.push(ci);
+        }
+        return items;
+      }
+      return [];
+    }
     const walker = grammar.newWalker(nameResolver);
 
     function fireEvent(name: string, args: any[]): void {
@@ -347,8 +361,16 @@ export class SalveCompletionProvider implements CompletionItemProvider {
       // NO-OP
       // Ignore sax errors because we expect the file to not be well formed at this stage.
     } 
-    
-    return items;
+    if (request === CompletionRequest.VAL) { //only run this when user is typing an attribute value
+      const xmlIds = collectXmlIds(documentText); //get all xml:id values from the document
+      for (const id of xmlIds) { //loop through each id found
+        const ci = new CompletionItem(`#${id}`, 24); //create a suggestion
+        ci.detail = "xml:id reference"; //small grey text shown next to suggestion
+        ci.documentation = `Points to the element with xml:id="${id}"`; //hover text
+        items.push(ci); //adding suggestion to the list
+  }
+}
+return items; 
 
   }
 

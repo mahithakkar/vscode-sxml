@@ -144,7 +144,9 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(diagnosticCollection);
 
   // COMPLETIONS PROVIDER
-  languages.registerCompletionItemProvider(supportedLangs, new SalveCompletionProvider(getManager), '<', ' ', '"')
+  //languages.registerCompletionItemProvider(supportedLangs, new SalveCompletionProvider(getManager), '<', ' ', '"')
+  languages.registerCompletionItemProvider(supportedLangs, new SalveCompletionProvider(getManager), '<', ' ', '"', '#') 
+  //telling vs code to trigger the autocomplete dropdown whenever the user types #
 
   // EVENTS
   workspace.onDidChangeTextDocument((event: TextDocumentChangeEvent) => {
