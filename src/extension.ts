@@ -1,4 +1,4 @@
-import { suggestAttValue, translateCursor, wrapWithEl } from "./commands";
+import { suggestAttValue, translateCursor, wrapWithEl, formatXml } from "./commands";
 import { ERR_SCHEMA, ERR_VALID, ERR_WELLFORM } from "./constants";
 import { XMLDocumentManager } from "./core/XMLDocumentManager";
 import { validateDocument, validateWithSchematron } from "./services/validate";
@@ -179,7 +179,7 @@ export function activate(context: ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(validateCommand, suggestAttValue, translateCursor, wrapWithEl);
+  context.subscriptions.push(validateCommand, suggestAttValue, translateCursor, wrapWithEl, formatXml);
   
   // Kick off on activation.
   commands.executeCommand("sxml.validate");
@@ -189,3 +189,4 @@ export function activate(context: ExtensionContext) {
 
 // this method is called when the extension is deactivated
 export function deactivate() {}
+

@@ -1,5 +1,6 @@
+
 import { XMLname } from "./constants";
-import { commands, Selection, window } from "vscode";
+import { commands,Range,  Selection, window } from "vscode";
 
 export const suggestAttValue = commands.registerTextEditorCommand(
   'sxml.suggestAttValue', (textEditor) => {
